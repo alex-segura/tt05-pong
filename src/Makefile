@@ -1,4 +1,4 @@
-# Makefile
+># Makefile
 # See https://docs.cocotb.org/en/stable/quickstart.html for more info
 
 # defaults
@@ -9,7 +9,13 @@ TOPLEVEL_LANG ?= verilog
 ifneq ($(GATES),yes)
 
 # this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_seven_segment_seconds.v $(PWD)/decoder.v
+VERILOG_SOURCES += $(PWD)/tb.v
+VERILOG_SOURCES += $(PWD)/tt_pong.v
+VERILOG_SOURCES += $(PWD)/pong.v
+VERILOG_SOURCES += $(PWD)/debounce.v
+VERILOG_SOURCES += $(PWD)/encoder.v
+VERILOG_SOURCES += $(PWD)/paddle.v
+VERILOG_SOURCES += $(PWD)/vga.v
 
 else
 

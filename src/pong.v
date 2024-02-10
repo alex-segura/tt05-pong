@@ -22,20 +22,17 @@ module pong (
     localparam NET_WIDTH = 3;
     localparam NET_HPOS = 320;
 
-    localparam paddle_v_init = 220;
-    localparam paddle_v_max = 430;
+    localparam paddle_v_init = 0;
     localparam ball_v_init = 240;
     localparam ball_h_init = 320;
 
     reg [9:0] ball_hpos;
     reg [9:0] ball_vpos;
-    reg [9:0] paddle1_vpos;
-    reg [9:0] paddle2_vpos;
     reg [9:0] ball_h_move;
     reg [9:0] ball_v_move;
 
-    reg [7:0] player1score;
-    reg [7:0] player2score;
+    reg [9:0] paddle1_vpos;
+    reg [9:0] paddle2_vpos;
 
     wire [9:0] ball_hdiff = hpos - ball_hpos;
     wire [9:0] ball_vdiff = vpos - ball_vpos;
@@ -82,15 +79,9 @@ module pong (
             if (ball_collide_paddle) begin
                 ball_h_move = -ball_h_move;
             end else if (ball_h_collide) begin
-                if (ball_h_move[9]) begin
-                    ball_hpos = ball_h_init;
-                    ball_vpos = ball_v_init;
-                    ball_h_move = BALL_SPEED;
-                end else begin
-                    ball_hpos = ball_h_init;
-                    ball_vpos = ball_v_init;
-                    ball_h_move = -BALL_SPEED;
-                end
+                ball_hpos = ball_h_init;
+                ball_vpos = ball_v_init;
+                ball_h_move = ball_h_move[9] ? BALL_SPEED : -BALL_SPEED;
             end else if (ball_v_collide) begin
                 ball_v_move = -ball_v_move;
             end

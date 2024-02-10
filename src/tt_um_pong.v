@@ -39,8 +39,11 @@ module tt_um_pong (
         .r(r),
         .g(g),
         .b(b));
+    assign uo_out[0] = hsync;
     assign uo_out[1] = vsync;
     assign uo_out[3:2] = {2{r}};
     assign uo_out[5:4] = {2{g}};
     assign uo_out[7:6] = {2{b}};
+    assign uio_out = 0;
+    assign uio_oe  = 0;
 endmodule

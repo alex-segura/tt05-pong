@@ -1,7 +1,6 @@
 `default_nettype none
 `timescale 1ns/1ns
 module pong (
-    input wire clk,
     input wire reset,
     input wire vsync,
     input wire [9:0] paddle1_next,
@@ -28,8 +27,7 @@ module pong (
 
     reg [9:0] ball_hpos;
     reg [9:0] ball_vpos;
-    reg [9:0] ball_h_move;
-    reg [9:0] ball_v_move;
+    reg ball_h_dir, ball_v_dir;
 
     reg [9:0] paddle1_vpos;
     reg [9:0] paddle2_vpos;
@@ -53,7 +51,7 @@ module pong (
     wire paddle2_gfx = p2_hgfx && p2_vgfx;
 
     wire net_hgfx = hpos - NET_HPOS < NET_WIDTH;
-    wire net_vgfx = vpos[3] == 0;
+    wire net_vgfx = vpos[3];
     wire net_gfx = net_hgfx && net_vgfx;
 
     wire ball_collide_paddle1 =
@@ -64,31 +62,28 @@ module pong (
          PADDLE2_HPOS - ball_hpos < PADDLE_WIDTH + BALL_SIZE;
     wire ball_collide_paddle = ball_collide_paddle1 || ball_collide_paddle2;
 
-    wire ball_v_collide = ball_vpos <= 0 || ball_vpos >= 480 - BALL_SIZE;
+    wire ball_v_collide = ball_vpos >= 480 - BALL_SIZE;
     wire ball_h_collide = ball_hpos >= 640 - BALL_SIZE;
 
-    always @(posedge vsync or posedge reset) begin
+    wire [9:0] ball_h_move = ball_h_dir ? BALL_SPEED : -BALL_SPEED;
+    wire [9:0] ball_v_move = ball_v_dir ? BALL_SPEED : -BALL_SPEED;
+
+    always @(posedge vsync) begin
         if (reset) begin
-            ball_hpos = ball_h_init;
-            ball_vpos = ball_v_init;
-            paddle1_vpos = paddle_v_init;
-            paddle2_vpos = paddle_v_init;
-            ball_h_move = BALL_SPEED;
-            ball_v_move = BALL_SPEED;
+            ball_h_dir = 0;
+            ball_v_dir = 0;
+            paddle1_vpos <= paddle_v_init;
+            paddle2_vpos <= paddle_v_init;
         end else begin
-            if (ball_collide_paddle) begin
-                ball_h_move = -ball_h_move;
-            end else if (ball_h_collide) begin
-                ball_hpos = ball_h_init;
-                ball_vpos = ball_v_init;
-                ball_h_move = ball_h_move[9] ? BALL_SPEED : -BALL_SPEED;
+            if (ball_h_collide || ball_collide_paddle) begin
+                ball_h_dir = ~ball_h_dir;
             end else if (ball_v_collide) begin
-                ball_v_move = -ball_v_move;
+                ball_v_dir = ~ball_v_dir;
             end
-            paddle1_vpos = paddle1_next;
-            paddle2_vpos = paddle2_next;
-            ball_hpos = ball_hpos + ball_h_move;
-            ball_vpos = ball_vpos + ball_v_move;
+            paddle1_vpos <= paddle1_next;
+            paddle2_vpos <= paddle2_next;
+            ball_hpos <= ball_h_collide ? ball_h_init : ball_hpos + ball_h_move;
+            ball_vpos <= ball_h_collide ? ball_v_init : ball_vpos + ball_v_move;
         end
     end
 

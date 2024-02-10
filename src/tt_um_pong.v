@@ -28,7 +28,6 @@ module tt_um_pong (
         .sy(vpos),
         .de(de));
     pong pong(
-        .clk(clk),
         .reset(reset),
         .vsync(vsync),
         .hpos(hpos),

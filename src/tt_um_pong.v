@@ -21,7 +21,7 @@ module tt_um_pong (
     paddle p2 (.clk(clk), .reset(reset), .a(ui_in[2]), .b(ui_in[3]), .move(paddle2_next));
     hvsync_generator hvsync_generator(
         .clk(clk),
-        .reset(sim_rst),
+        .reset(reset),
         .hsync(hsync),
         .vsync(vsync),
         .sx(hpos),

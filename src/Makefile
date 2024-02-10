@@ -4,6 +4,7 @@
 # defaults
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
+
 VERILATOR=verilator
 VFLAGS = -O3 --x-assign fast --x-initial fast --noassert
 SDL_CFLAGS = `sdl2-config --cflags`
@@ -43,5 +44,6 @@ pong: pong.mk
 	$(VERILATOR) ${VFLAGS} -I.. \
 		-cc $< --exe $(basename $@).cpp -o $(basename $@) \
 		-CFLAGS "${SDL_CFLAGS}" -LDFLAGS "${SDL_LDFLAGS}"
-clean:
-	-rm -rf ./obj_dir
+
+# include cocotb's make rules to take care of the simulator setup
+include $(shell cocotb-config --makefiles)/Makefile.sim

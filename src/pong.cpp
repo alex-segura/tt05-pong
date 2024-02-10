@@ -15,6 +15,7 @@ typedef struct Pixel {  // for SDL texture
 } Pixel;
 
 const int PADDLE_MOVE = 20;
+const int PADDLE_MAX = 430;
 
 int main(int argc, char* argv[]) {
     Verilated::commandArgs(argc, argv);
@@ -103,16 +104,20 @@ int main(int argc, char* argv[]) {
                     case SDLK_q:
                         goto end;
                     case SDLK_w:
-                        top->paddle1_next -= PADDLE_MOVE;
+                        if (top->paddle1_next)
+                            top->paddle1_next -= PADDLE_MOVE;
                         break;
                     case SDLK_s:
-                        top->paddle1_next += PADDLE_MOVE;
+                        if (top->paddle1_next < PADDLE_MAX)
+                            top->paddle1_next += PADDLE_MOVE;
                         break;
                     case SDLK_UP:
-                        top->paddle2_next -= PADDLE_MOVE;
+                        if (top->paddle2_next)
+                            top->paddle2_next -= PADDLE_MOVE;
                         break;
                     case SDLK_DOWN:
-                        top->paddle2_next += PADDLE_MOVE;
+                        if (top->paddle2_next < PADDLE_MAX)
+                            top->paddle2_next += PADDLE_MOVE;
                         break;
                     default:
                         break;

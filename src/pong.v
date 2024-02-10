@@ -1,41 +1,107 @@
-module pong #( parameter PADDLE_WIDTH = 8, COLOR_DEPTH=8 ) (
+`default_nettype none
+`timescale 1ns/1ns
+module pong (
     input wire clk,
     input wire reset,
-    input wire p1a,
-    input wire p1b,
-    input wire p2a,
-    input wire p2b,
-    output wire [COLOR_DEPTH-1:0] r,
-    output wire [COLOR_DEPTH-1:0] g,
-    output wire [COLOR_DEPTH-1:0] b
+    input wire vsync,
+    input wire [9:0] paddle1_next,
+    input wire [9:0] paddle2_next,
+    input wire [9:0] hpos,
+    input wire [9:0] vpos,
+    input wire de,
+    output wire r,
+    output wire g,
+    output wire b
 );
-    wire p1a_db, p1b_db;
-    wire p2a_db, p2b_db;
-    wire hsync, vsync;
-    wire de;
-    reg [9:0] ballx;
-    reg [9:0] bally;
-    reg [PADDLE_WIDTH-1:0] paddle1;
-    reg [PADDLE_WIDTH-1:0] paddle2;
-    wire [9:0] sx;
-    wire [9:0] sy;
+    localparam BALL_SIZE = 6;
+    localparam BALL_SPEED = 8;
+    localparam PADDLE_WIDTH = 6;
+    localparam PADDLE_HEIGHT = 50;
+    localparam PADDLE1_HPOS = 10;
+    localparam PADDLE2_HPOS = 626;
+    localparam NET_WIDTH = 3;
+    localparam NET_HPOS = 320;
 
-    paddle p1 #( WIDTH=PADDLE_WIDTH ) (
-        .clk(clk),
-        .reset(reset),
-        .a(p1a),
-        .b(p1b),
-        .value(paddle1));
+    localparam paddle_v_init = 220;
+    localparam paddle_v_max = 430;
+    localparam ball_v_init = 240;
+    localparam ball_h_init = 320;
 
-    paddle p2 #( WIDTH=PADDLE_WIDTH ) (
-        .clk(clk),
-        .reset(reset),
-        .a(p2a),
-        .b(p2b),
-        .value(paddle2));
+    reg [9:0] ball_hpos;
+    reg [9:0] ball_vpos;
+    reg [9:0] paddle1_vpos;
+    reg [9:0] paddle2_vpos;
+    reg [9:0] ball_h_move;
+    reg [9:0] ball_v_move;
 
-    vga vga(.clk(clk), .reset(reset), .hsync(hsync), .vsync(vsync), .de(de));
+    reg [7:0] player1score;
+    reg [7:0] player2score;
 
-    always @(posedge clk) begin
+    wire [9:0] ball_hdiff = hpos - ball_hpos;
+    wire [9:0] ball_vdiff = vpos - ball_vpos;
+    wire ball_hgfx = ball_hdiff < BALL_SIZE;
+    wire ball_vgfx = ball_vdiff < BALL_SIZE;
+    wire ball_gfx = ball_hgfx && ball_vgfx;
+
+    wire [9:0] p1_hdiff = hpos - PADDLE1_HPOS;
+    wire [9:0] p1_vdiff = vpos - paddle1_vpos;
+    wire p1_hgfx = p1_hdiff < PADDLE_WIDTH;
+    wire p1_vgfx = p1_vdiff < PADDLE_HEIGHT;
+    wire paddle1_gfx = p1_hgfx && p1_vgfx;
+
+    wire [9:0] p2_hdiff = hpos - PADDLE2_HPOS;
+    wire [9:0] p2_vdiff = vpos - paddle2_vpos;
+    wire p2_hgfx = p2_hdiff < PADDLE_WIDTH;
+    wire p2_vgfx = p2_vdiff < PADDLE_HEIGHT;
+    wire paddle2_gfx = p2_hgfx && p2_vgfx;
+
+    wire net_hgfx = hpos - NET_HPOS < NET_WIDTH;
+    wire net_vgfx = vpos[3] == 0;
+    wire net_gfx = net_hgfx && net_vgfx;
+
+    wire ball_collide_paddle1 =
+         ball_vpos - paddle1_vpos < PADDLE_HEIGHT + BALL_SIZE &&
+         ball_hpos - PADDLE1_HPOS < PADDLE_WIDTH + BALL_SIZE;
+    wire ball_collide_paddle2 =
+         ball_vpos - paddle2_vpos < PADDLE_HEIGHT + BALL_SIZE &&
+         PADDLE2_HPOS - ball_hpos < PADDLE_WIDTH + BALL_SIZE;
+    wire ball_collide_paddle = ball_collide_paddle1 || ball_collide_paddle2;
+
+    wire ball_v_collide = ball_vpos <= 0 || ball_vpos >= 480 - BALL_SIZE;
+    wire ball_h_collide = ball_hpos >= 640 - BALL_SIZE;
+
+    always @(posedge vsync or posedge reset) begin
+        if (reset) begin
+            ball_hpos = ball_h_init;
+            ball_vpos = ball_v_init;
+            paddle1_vpos = paddle_v_init;
+            paddle2_vpos = paddle_v_init;
+            ball_h_move = BALL_SPEED;
+            ball_v_move = BALL_SPEED;
+        end else begin
+            if (ball_collide_paddle) begin
+                ball_h_move = -ball_h_move;
+            end else if (ball_h_collide) begin
+                if (ball_h_move[9]) begin
+                    ball_hpos = ball_h_init;
+                    ball_vpos = ball_v_init;
+                    ball_h_move = BALL_SPEED;
+                end else begin
+                    ball_hpos = ball_h_init;
+                    ball_vpos = ball_v_init;
+                    ball_h_move = -BALL_SPEED;
+                end
+            end else if (ball_v_collide) begin
+                ball_v_move = -ball_v_move;
+            end
+            paddle1_vpos = paddle1_next;
+            paddle2_vpos = paddle2_next;
+            ball_hpos = ball_hpos + ball_h_move;
+            ball_vpos = ball_vpos + ball_v_move;
+        end
     end
+
+    assign r = de && (ball_gfx || paddle1_gfx || paddle2_gfx || net_gfx);
+    assign g = de && (ball_gfx || paddle1_gfx || paddle2_gfx || net_gfx);
+    assign b = de && (ball_gfx || paddle1_gfx || paddle2_gfx || net_gfx);
 endmodule

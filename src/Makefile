@@ -1,9 +1,13 @@
-># Makefile
+# Makefile
 # See https://docs.cocotb.org/en/stable/quickstart.html for more info
 
 # defaults
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
+VERILATOR=verilator
+VFLAGS = -O3 --x-assign fast --x-initial fast --noassert
+SDL_CFLAGS = `sdl2-config --cflags`
+SDL_LDFLAGS = `sdl2-config --libs`
 
 # normal simulation
 ifneq ($(GATES),yes)
@@ -15,7 +19,7 @@ VERILOG_SOURCES += $(PWD)/pong.v
 VERILOG_SOURCES += $(PWD)/debounce.v
 VERILOG_SOURCES += $(PWD)/encoder.v
 VERILOG_SOURCES += $(PWD)/paddle.v
-VERILOG_SOURCES += $(PWD)/vga.v
+VERILOG_SOURCES += $(PWD)/hvsync_generator.v
 
 else
 
@@ -32,11 +36,12 @@ VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_f
 VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/gate_level_netlist.v
 endif
 
-# TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-TOPLEVEL = tb
+pong: pong.mk
+	make -C	./obj_dir -f Vtop_pong.mk
 
-# MODULE is the basename of the Python test file
-MODULE = test
-
-# include cocotb's make rules to take care of the simulator setup
-include $(shell cocotb-config --makefiles)/Makefile.sim
+%.mk: top_%.v
+	$(VERILATOR) ${VFLAGS} -I.. \
+		-cc $< --exe $(basename $@).cpp -o $(basename $@) \
+		-CFLAGS "${SDL_CFLAGS}" -LDFLAGS "${SDL_LDFLAGS}"
+clean:
+	-rm -rf ./obj_dir

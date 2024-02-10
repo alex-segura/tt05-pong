@@ -1,4 +1,6 @@
-module vga(
+`default_nettype none
+`timescale 1ns/1ns
+module hvsync_generator(
     input wire clk,
     input wire reset,
     output reg [9:0] sx,

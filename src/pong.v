@@ -12,16 +12,15 @@ module pong (
     output wire g,
     output wire b
 );
-    localparam BALL_SIZE = 6;
-    localparam BALL_SPEED = 8;
-    localparam PADDLE_WIDTH = 6;
+    localparam BALL_SIZE = 4;
+    localparam BALL_SPEED = 4;
+    localparam PADDLE_WIDTH = 4;
     localparam PADDLE_HEIGHT = 50;
     localparam PADDLE1_HPOS = 10;
     localparam PADDLE2_HPOS = 626;
     localparam NET_WIDTH = 3;
     localparam NET_HPOS = 320;
 
-    localparam paddle_v_init = 0;
     localparam ball_v_init = 240;
     localparam ball_h_init = 320;
 
@@ -72,8 +71,8 @@ module pong (
         if (reset) begin
             ball_h_dir = 0;
             ball_v_dir = 0;
-            paddle1_vpos <= paddle_v_init;
-            paddle2_vpos <= paddle_v_init;
+            paddle1_vpos <= paddle1_next;
+            paddle2_vpos <= paddle2_next;
         end else begin
             if (ball_h_collide || ball_collide_paddle) begin
                 ball_h_dir = ~ball_h_dir;

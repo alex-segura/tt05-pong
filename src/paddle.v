@@ -8,7 +8,9 @@ module paddle (
     output wire [9:0] move
 );
     wire adb, bdb;
-    debounce #(.HIST_LEN(4)) dpa(.clk(clk), .reset(reset), .button(a), .debounced(adb));
-    debounce #(.HIST_LEN(4)) dpb(.clk(clk), .reset(reset), .button(b), .debounced(bdb));
-    encoder #(.WIDTH(10)) enc(.clk(clk), .reset(reset), .a(adb), .b(bdb), .value(move));
+    wire [8:0] value;
+    debounce dpa(.clk(clk), .reset(reset), .button(a), .debounced(adb));
+    debounce dpb(.clk(clk), .reset(reset), .button(b), .debounced(bdb));
+    encoder #(.WIDTH(9), .MAX(430)) enc(.clk(clk), .reset(reset), .a(adb), .b(bdb), .value(value));
+    assign move = {1'b0, value};
 endmodule
